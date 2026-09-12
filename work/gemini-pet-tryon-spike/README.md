@@ -1,5 +1,10 @@
 # Gemini pet virtual try-on feasibility spike
 
+> Standalone research spike for [PawTry Together](../../README.md#research-which-gemini-model-to-use)'s
+> AI try-on feature. This is an independent Python script, separate from
+> the running Node app - it doesn't share code or a process with it. See
+> the main README for how (and whether) its findings have been adopted.
+
 ## Verdict: PARTIAL
 
 The API and prompt workflow are implementable as a standalone Python script, but visual feasibility was **not validated in this environment**: neither `GEMINI_API_KEY`/`GOOGLE_API_KEY` nor an approved user-provided dog image was available. The script, three prompt strategies, three outfit presets, evaluation sheet, retry handling, and explicit demo fallback are ready. The recommendation below is documentation- and failure-mode-based, not the result of scored generations.
