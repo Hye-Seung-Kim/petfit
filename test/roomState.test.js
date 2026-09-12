@@ -5,6 +5,7 @@ import {
   addLook,
   setVote,
   finalizeLook,
+  resetRoom,
   _resetAllRoomsForTests,
 } from '../services/roomState.js';
 
@@ -73,6 +74,36 @@ test('rooms are isolated from each other', () => {
   const roomB = getState('room-b');
   assert.deepEqual(roomB.looks, []);
   assert.equal(roomB.version, 1);
+});
+
+test('resetRoom clears looks, votes, and finalLookId, bumps version, and returns the removed looks', () => {
+  const lookA = { id: 'look-1', outfitId: 'red-hoodie', outfitName: 'Red Hoodie', imageUrl: '/generated/look-1.png', createdAt: new Date().toISOString() };
+  const lookB = { id: 'look-2', outfitId: 'tuxedo', outfitName: 'Formal Tuxedo', imageUrl: '/generated/look-2.png', createdAt: new Date().toISOString() };
+  addLook('demo-room', lookA);
+  addLook('demo-room', lookB);
+  setVote('demo-room', 'friend-1', 'look-1');
+  finalizeLook('demo-room', 'look-1');
+
+  const { room, removedLooks } = resetRoom('demo-room');
+
+  assert.deepEqual(room.looks, []);
+  assert.deepEqual(room.votes, {});
+  assert.equal(room.finalLookId, null);
+  assert.equal(room.version, 6);
+  assert.deepEqual(removedLooks, [lookA, lookB]);
+});
+
+test('resetRoom lets a new voting round start with fresh looks after a reset', () => {
+  addLook('demo-room', { id: 'look-1', outfitId: 'red-hoodie', outfitName: 'Red Hoodie', imageUrl: '/generated/look-1.png', createdAt: new Date().toISOString() });
+  setVote('demo-room', 'friend-1', 'look-1');
+  resetRoom('demo-room');
+
+  const newLook = { id: 'look-2', outfitId: 'tuxedo', outfitName: 'Formal Tuxedo', imageUrl: '/generated/look-2.png', createdAt: new Date().toISOString() };
+  addLook('demo-room', newLook);
+  const room = setVote('demo-room', 'friend-1', 'look-2');
+
+  assert.deepEqual(room.looks, [newLook]);
+  assert.equal(room.votes['friend-1'], 'look-2');
 });
 
 test('a late joiner reading state sees existing looks and votes', () => {

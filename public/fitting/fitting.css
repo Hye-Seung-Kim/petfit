@@ -156,6 +156,20 @@ main {
   position: relative;
 }
 
+/* The Vonage Publisher needs a real attached DOM element to render its own
+   preview into, but the host already sees the same source in "Your local
+   video" above - showing the publisher's preview too would just duplicate
+   it unstyled. Keep the element live (not display:none) so OpenTok.js can
+   size it, but take it out of the grid and visually hide it. */
+#publisherContainer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .video-caption {
   position: absolute;
   bottom: 0;
@@ -209,6 +223,14 @@ main {
   margin-top: 14px;
 }
 .btn-primary:hover:not(:disabled) { background: var(--accent-dark); }
+
+.btn-danger {
+  margin-top: 14px;
+  background: #fff;
+  color: var(--danger);
+  border-color: #ef9a9a;
+}
+.btn-danger:hover:not(:disabled) { background: #ffebee; }
 
 .notice {
   margin-top: 10px;

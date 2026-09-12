@@ -50,6 +50,7 @@ const outfitSection = el('outfitSection');
 const outfitList = el('outfitList');
 const generateBtn = el('generateBtn');
 const generateError = el('generateError');
+const resetRoomBtn = el('resetRoomBtn');
 
 const looksGallery = el('looksGallery');
 const looksEmpty = el('looksEmpty');
@@ -357,6 +358,7 @@ if (role === 'host') {
   pauseBtn.addEventListener('click', () => hostVideo.pause());
   captureBtn.addEventListener('click', captureFrame);
   generateBtn.addEventListener('click', generateLook);
+  resetRoomBtn.addEventListener('click', resetRoom);
 } else {
   voteHint.hidden = false;
 }
@@ -372,11 +374,15 @@ async function generateLook() {
   generateBtn.disabled = true;
   generateBtn.textContent = 'Generating…';
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45000); // Gemini calls normally take ~5-10s
+
   try {
     const res = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ frame: capturedFrameDataUrl, outfitId: selectedOutfitId }),
+      signal: controller.signal,
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
@@ -384,10 +390,14 @@ async function generateLook() {
     notifyStateChanged();
     showNotice('New look generated!');
   } catch (err) {
-    generateError.textContent = err.message;
+    const message = err.name === 'AbortError'
+      ? 'The AI request timed out after 45s. Please try again.'
+      : err.message;
+    generateError.textContent = message;
     generateError.hidden = false;
-    showError('Could not generate try-on: ' + err.message);
+    showError('Could not generate try-on: ' + message);
   } finally {
+    clearTimeout(timeoutId);
     generating = false;
     generateBtn.textContent = 'Generate AI Try-On';
     updateGenerateButtonState();
@@ -424,6 +434,31 @@ async function finalizeLook(lookId) {
     showNotice('Final look locked in!');
   } catch (err) {
     showError('Could not finalize look: ' + err.message);
+  }
+}
+
+async function resetRoom() {
+  const confirmed = window.confirm('Reset this room? This clears all generated looks, votes, and the final pick for everyone.');
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/reset`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Reset failed');
+
+    // Clear local capture/selection state too, so the host starts a clean cycle.
+    capturedFrameDataUrl = null;
+    capturedFrameImg.hidden = true;
+    capturedFrameEmpty.hidden = false;
+    selectedOutfitId = null;
+    [...outfitList.children].forEach((c) => c.classList.remove('selected'));
+    updateGenerateButtonState();
+
+    applyRoomState(data);
+    notifyStateChanged();
+    showNotice('Room reset - ready for a new round.');
+  } catch (err) {
+    showError('Could not reset room: ' + err.message);
   }
 }
 

@@ -10,7 +10,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import { getState, addLook, setVote, finalizeLook } from '../services/roomState.js';
+import { getState, addLook, setVote, finalizeLook, resetRoom } from '../services/roomState.js';
 import { generateTryOn, isMockMode, currentModel } from '../services/gemini.js';
 import { OUTFITS, getOutfit } from '../services/outfits.js';
 
@@ -173,6 +173,29 @@ router.post('/api/rooms/:room/finalize', (req, res) => {
     console.error(`Error finalizing look for room "${room}":`, error);
     res.status(500).json({ error: 'Failed to finalize look' });
   }
+});
+
+// Host-triggered reset: clears looks/votes/final pick so a new round can
+// start without restarting the server. Not auth-gated server-side (see
+// README on role handling) - the host-only button is a UI convention.
+router.post('/api/rooms/:room/reset', async (req, res) => {
+  const { room } = req.params;
+  if (!isValidRoomName(room)) {
+    return res.status(400).json({ error: 'Invalid room name' });
+  }
+
+  const { room: updatedRoom, removedLooks } = resetRoom(room);
+
+  await Promise.all(removedLooks.map(async (look) => {
+    const fileName = look.imageUrl.split('/').pop();
+    try {
+      await fs.unlink(path.join(GENERATED_DIR, fileName));
+    } catch (error) {
+      console.warn(`Could not remove old generated file "${fileName}":`, error.message);
+    }
+  }));
+
+  res.json(updatedRoom);
 });
 
 export default router;

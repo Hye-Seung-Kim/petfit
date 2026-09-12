@@ -61,6 +61,22 @@ export function finalizeLook(roomName, lookId) {
   return room;
 }
 
+/**
+ * Clears a room's looks, votes, and final pick so a new voting round can
+ * start, without needing a full server restart (which would reset every
+ * room). Returns the looks that were removed so the caller can clean up
+ * their generated image files on disk.
+ */
+export function resetRoom(roomName) {
+  const room = getOrCreateRoom(roomName);
+  const removedLooks = room.looks;
+  room.looks = [];
+  room.votes = {};
+  room.finalLookId = null;
+  room.version += 1;
+  return { room, removedLooks };
+}
+
 /** Test-only helper to reset all in-memory rooms between test cases. */
 export function _resetAllRoomsForTests() {
   rooms.clear();
