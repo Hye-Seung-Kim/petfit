@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PawTry Together</title>
+  <link rel="stylesheet" href="/fitting/fitting.css" />
+  <script src="https://static.opentok.com/v2/js/opentok.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🐾 <span>PawTry Together</span></div>
+    <div id="demoModeBadge" class="badge badge-demo" hidden>DEMO MODE</div>
+    <div class="room-controls">
+      <label class="room-name-field">
+        Room
+        <input id="roomNameInput" type="text" spellcheck="false" />
+      </label>
+      <button id="goToRoomBtn" class="btn btn-small">Go</button>
+      <button id="copyLinkBtn" class="btn btn-small" hidden>Copy friend link</button>
+      <span id="connectionStatus" class="status status-connecting">Connecting…</span>
+    </div>
+  </header>
+
+  <main id="app" hidden>
+    <div id="banner" class="banner" hidden></div>
+
+    <section class="panel video-panel">
+      <h2>Dog Video</h2>
+      <div class="video-stage">
+        <div id="hostVideoWrap" class="video-box">
+          <video id="hostVideo" playsinline muted></video>
+          <p class="video-caption">Your local video (source for capture &amp; publishing)</p>
+        </div>
+        <div id="subscriberWrap" class="video-box">
+          <div id="subscriberContainer" class="ot-target"></div>
+          <p id="waitingForHost" class="video-placeholder">Waiting for the host to start the stream…</p>
+          <p class="video-caption">Live Vonage stream (what the friend sees)</p>
+        </div>
+        <div id="publisherContainer" class="ot-target host-only" hidden></div>
+      </div>
+
+      <div id="hostVideoControls" class="controls host-only" hidden>
+        <input id="videoFileInput" type="file" accept="video/mp4,video/*" hidden />
+        <button id="uploadBtn" class="btn">Upload Video</button>
+        <button id="useDemoVideoBtn" class="btn" hidden>Use Demo Video</button>
+        <button id="playBtn" class="btn" disabled>Play</button>
+        <button id="pauseBtn" class="btn" disabled>Pause</button>
+        <button id="captureBtn" class="btn" disabled>Capture Frame</button>
+      </div>
+      <p id="demoVideoMissingNotice" class="notice host-only" hidden>
+        No demo video found at <code>public/demo/dog-demo.mp4</code>. Upload a local MP4 instead.
+      </p>
+    </section>
+
+    <section id="capturedSection" class="panel host-only" hidden>
+      <h2>Captured Moment</h2>
+      <div class="captured-frame-row">
+        <img id="capturedFrameImg" alt="Captured dog frame" hidden />
+        <p id="capturedFrameEmpty" class="video-placeholder">Capture a frame from the video above to get started.</p>
+      </div>
+    </section>
+
+    <section id="outfitSection" class="panel host-only" hidden>
+      <h2>Choose an Outfit</h2>
+      <div id="outfitList" class="outfit-list"></div>
+      <button id="generateBtn" class="btn btn-primary" disabled>Generate AI Try-On</button>
+      <p id="generateError" class="error-text" hidden></p>
+    </section>
+
+    <section class="panel">
+      <h2>Generated Looks</h2>
+      <p class="ai-disclaimer">AI-generated style preview. Actual fit and appearance may vary.</p>
+      <div id="looksGallery" class="looks-gallery">
+        <p id="looksEmpty" class="video-placeholder">No looks generated yet.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Vote Tally</h2>
+      <div id="voteTally" class="vote-tally">
+        <p id="voteTallyEmpty" class="video-placeholder">No votes yet.</p>
+      </div>
+      <p id="voteHint" class="notice friend-only" hidden>Tap "Vote for this look" on a look above to cast your vote.</p>
+    </section>
+
+    <section class="panel host-only" hidden>
+      <h2>Finalize</h2>
+      <p class="notice">Use the "Finalize this look" button on a generated look above to lock in the final outfit for everyone.</p>
+    </section>
+  </main>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script type="module" src="/fitting/fitting.js"></script>
+</body>
+</html>

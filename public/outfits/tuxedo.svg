@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Demo asset: Formal Tuxedo icon">
+  <rect width="200" height="200" rx="20" fill="#f3e5f5"/>
+  <path d="M60 72 Q100 36 140 72 L148 150 Q100 170 52 150 Z" fill="#212121"/>
+  <path d="M80 70 L100 100 L120 70 L112 66 L100 82 L88 66 Z" fill="#fafafa"/>
+  <path d="M92 96 L100 88 L108 96 L104 108 L96 108 Z" fill="#212121"/>
+  <circle cx="100" cy="120" r="4" fill="#fafafa"/>
+  <circle cx="100" cy="136" r="4" fill="#fafafa"/>
+  <text x="100" y="188" font-size="13" font-family="'Segoe UI', sans-serif" text-anchor="middle" fill="#4a148c">Formal Tuxedo (demo)</text>
+</svg>

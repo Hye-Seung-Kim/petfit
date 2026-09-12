@@ -309,3 +309,157 @@ We love to hear from you so if you have questions, comments or find a bug in the
 ## Further Reading
 
 - Check out the Developer Documentation at <https://developer.vonage.com/>
+
+---
+
+# PawTry Together (added on top of this starter)
+
+A shared AI virtual fitting room for pet outfits, built on top of this Vonage
+Video learning server. A host publishes a prerecorded dog video into a
+Vonage session; a friend joins the same room and watches it live; the host
+captures a frame, picks a demo outfit, and generates an AI try-on preview
+with Gemini; both participants see the result and the friend can vote.
+
+This is a hackathon MVP: no auth, no database, no payments. Room state
+(looks, votes, final pick) lives in server memory and is lost on restart -
+see `services/roomState.js`.
+
+## What was added, and what wasn't touched
+
+**Untouched:** `routes/index.js` and all of its existing routes
+(`/room/:name`, `/archive/*`, `/broadcast/*`, `/sip/*`, `/captions/*`,
+`/audio-connector/*`). PawTry Together calls `GET /room/:name` exactly as
+documented above to get `{ applicationId, sessionId, token }` for Vonage.
+
+**Added:**
+- `services/roomState.js` - in-memory room state + mutations (tested, see below)
+- `services/outfits.js` - the fixed 3-outfit demo catalog
+- `services/gemini.js` - Gemini image-edit call, with a mock mode
+- `routes/fitting.js` - the `/fitting/:room` page route and the `/api/rooms/*` + `/api/config` JSON API
+- `public/fitting/` - the vanilla JS/CSS client (OpenTok.js from the official CDN, no build step)
+- `public/outfits/*.svg` - 3 hand-drawn placeholder outfit icons (clearly labeled demo assets, not real product photos)
+- `public/demo/README.txt` - where to drop your demo video
+- `test/roomState.test.js` - unit tests for the room-state mutation logic
+
+**Modified (minimally):**
+- `app.js` - mounts the new router, and raises the global JSON body limit from
+  express's 100kb default to 15mb so a captured video frame (sent as base64
+  JSON) fits. Nothing about the existing routes' behavior changed.
+- `.envcopy` - appended 3 new PawTry-specific variables at the bottom; all
+  original Vonage variables are untouched.
+- `package.json` - added `@google/genai` and a `test` script.
+- **Dependency fix (unrelated to PawTry logic):** the versions of
+  `@vonage/jwt` and `@vonage/server-sdk` pinned in the original
+  `package-lock.json` (`@vonage/jwt@1.13.3`, transitively pulling an equally
+  broken `@vonage/vetch`) ship a `package.json` "exports" map pointing at
+  ESM files that don't exist in the published tarball, so `node ./bin/www`
+  crashed immediately with `ERR_MODULE_NOT_FOUND` on Node 24, before any of
+  this project's own code ever ran. This reproduces on a clean
+  `git clone` + `npm install` of the upstream starter, independent of
+  PawTry Together. Fixed by bumping to the latest `@vonage/server-sdk` and
+  `@vonage/jwt` (`npm install @vonage/server-sdk@latest @vonage/jwt@latest`),
+  which resolves cleanly. No route code changed.
+
+## Setup
+
+```bash
+npm install
+cp .envcopy .env
+```
+
+Edit `.env`:
+
+```bash
+# Required - from https://dashboard.nexmo.com/applications
+API_APPLICATION_ID=...
+PRIVATE_KEY=...          # path to your private key, or the key itself
+
+# Gemini (required unless DEMO_MOCK_GEMINI=true)
+GEMINI_API_KEY=...                          # https://aistudio.google.com/apikey
+GEMINI_IMAGE_MODEL=gemini-2.5-flash-image   # sensible default, override if needed
+DEMO_MOCK_GEMINI=false                      # set true to skip real Gemini calls
+```
+
+Drop a short MP4 of a dog at `public/demo/dog-demo.mp4` (see
+`public/demo/README.txt`) - or skip this and just use the in-app "Upload
+Video" button with any local MP4 during the demo.
+
+Start the server:
+
+```bash
+npm start
+```
+
+Run the unit tests:
+
+```bash
+npm test
+```
+
+## Demo script (two Chrome windows)
+
+1. Window A (host): open `http://localhost:3000/fitting/demo-room?role=host`.
+2. Window B (friend): open `http://localhost:3000/fitting/demo-room?role=friend`
+   (or click "Copy friend link" in window A and paste it).
+3. In window A, click **Upload Video** (or **Use Demo Video** if
+   `public/demo/dog-demo.mp4` exists) and pick your dog clip. It publishes
+   into the Vonage session automatically once it starts playing.
+4. Window B should show the live stream within a couple of seconds
+   ("Waiting for the host to start the stream…" clears once it arrives).
+5. In window A, click **Capture Frame** at a good moment - the captured
+   still appears under "Captured Moment".
+6. Pick an outfit card (Red Hoodie / Yellow Raincoat / Formal Tuxedo), then
+   click **Generate AI Try-On**. A loading state shows; the button is
+   disabled while a request is in flight so you can't double-submit.
+7. The new look appears in **Generated Looks** in both windows (window B
+   updates via a Vonage signal telling it to re-fetch state - no page
+   refresh needed).
+8. In window B, click **Vote for this look** on a look card.
+9. In window A, click **Finalize this look** on the winning look - it gets
+   a green "✓ FINAL PICK" badge in both windows.
+10. Reload window B (or open a third window on the same room) to confirm a
+    late joiner immediately sees the existing looks, votes, and final pick.
+
+If `DEMO_MOCK_GEMINI=true`, step 6 returns a clearly-labeled "DEMO MODE
+PREVIEW" placeholder image instead of calling Gemini - useful for a dry run
+without burning API calls or if you lose network at the venue. A "DEMO MODE"
+badge appears in the top bar whenever it's on.
+
+## What's actually verified vs. what still needs real credentials
+
+Verified locally in this session (Node 24, mock Gemini mode, a throwaway
+locally-generated RSA key + fake Vonage application ID):
+
+- `npm install` and `npm start` boot cleanly (after the dependency fix above).
+- `npm test` - all 10 room-state unit tests pass.
+- `GET /room/:name` reaches the real Vonage API and correctly gets rejected
+  with 401 for the fake credentials (proves the JWT signing / request path
+  works; a real `API_APPLICATION_ID` + `PRIVATE_KEY` should succeed).
+- `GET /api/config`, `GET /api/rooms/:room/state` - correct shapes.
+- `POST /generate` (mock mode) → `POST /vote` → `POST /finalize` → re-fetching
+  `/state` - full happy path, including validation errors for a bad
+  `outfitId`, a missing frame, and voting for a nonexistent look.
+- Generated placeholder images are written under `public/generated/` and
+  served back over HTTP (200).
+- `/fitting/:room` page, `fitting.js`, `fitting.css`, and an outfit SVG all
+  serve correctly; an invalid room name (e.g. containing a space) is
+  rejected with 400.
+
+**Not verified** (needs a real Vonage application + a real Gemini API key,
+neither of which were available in this environment):
+
+- An actual two-browser Vonage video session: publishing a captured
+  `<video>` element via `captureStream()`, subscribing on the friend side,
+  and receiving `signal:update` over a live session. The client code follows
+  the documented OpenTok.js API, but wasn't exercised against a live Vonage
+  session or in an actual browser.
+- A real Gemini `generateContent` image-edit call (model name, request
+  shape, and response parsing follow the current documented `@google/genai`
+  API, but were not run against the live API).
+- Cross-browser/mobile behavior - this was built and reasoned about for
+  desktop Chrome only, per the brief.
+
+Before a live demo: plug in real `API_APPLICATION_ID` / `PRIVATE_KEY` and
+`GEMINI_API_KEY`, set `DEMO_MOCK_GEMINI=false`, and run through the demo
+script above in two actual Chrome windows once to confirm publish/subscribe
+and a real Gemini edit work in your environment.

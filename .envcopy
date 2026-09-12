@@ -15,3 +15,17 @@ VCR_API_ACCOUNT_SECRET=
 
 # If using the SIP integration, enter a phone number linked to the Application ID above
 CONFERENCE_NUMBER=
+
+# --- PawTry Together (Gemini virtual pet fitting room) ---
+
+# Your Google Gemini API key (https://aistudio.google.com/apikey). Required
+# unless DEMO_MOCK_GEMINI=true. Never exposed to the browser.
+GEMINI_API_KEY=
+
+# Image-editing-capable Gemini model. Defaults to gemini-2.5-flash-image if unset.
+GEMINI_IMAGE_MODEL=gemini-2.5-flash-image
+
+# Set to "true" to skip real Gemini calls and use a local placeholder image
+# instead. Useful for demoing/testing without an API key or network access.
+# The UI always shows a visible "Demo Mode" badge when this is on.
+DEMO_MOCK_GEMINI=false

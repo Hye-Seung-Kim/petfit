@@ -6,6 +6,7 @@ import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
 import index from './routes/index.js';
+import fitting from './routes/fitting.js';
 import cors from 'cors';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,12 +23,16 @@ app.use(cors());
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-app.use(bodyParser.json());
+// Limit raised from the default 100kb so PawTry Together's captured video
+// frames (sent as base64 JSON) fit. See routes/fitting.js for the matching
+// server-side decoded-size check.
+app.use(bodyParser.json({ limit: '15mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
+app.use('/', fitting);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

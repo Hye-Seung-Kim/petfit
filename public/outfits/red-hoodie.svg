@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Demo asset: Red Hoodie icon">
+  <rect width="200" height="200" rx="20" fill="#fff3e0"/>
+  <path d="M60 70 Q100 30 140 70 L150 150 Q100 170 50 150 Z" fill="#d32f2f"/>
+  <path d="M75 68 Q100 45 125 68 Q118 90 100 90 Q82 90 75 68 Z" fill="#b71c1c"/>
+  <circle cx="100" cy="95" r="5" fill="#fff3e0"/>
+  <circle cx="100" cy="112" r="5" fill="#fff3e0"/>
+  <circle cx="100" cy="129" r="5" fill="#fff3e0"/>
+  <text x="100" y="188" font-size="14" font-family="'Segoe UI', sans-serif" text-anchor="middle" fill="#5d4037">Red Hoodie (demo)</text>
+</svg>

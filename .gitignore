@@ -48,3 +48,10 @@ vcr-build/
 release/
 
 private.key
+
+# PawTry Together
+# Server-generated AI try-on images (regenerated per demo run, not source).
+public/generated/*
+!public/generated/.gitkeep
+# Optional local demo video (not committed; see public/demo/README.txt).
+public/demo/*.mp4

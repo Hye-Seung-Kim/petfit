@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Demo asset: Yellow Raincoat icon">
+  <rect width="200" height="200" rx="20" fill="#e3f2fd"/>
+  <path d="M58 72 Q100 34 142 72 L152 148 Q100 168 48 148 Z" fill="#fdd835"/>
+  <path d="M74 70 Q100 50 126 70 Q118 88 100 88 Q82 88 74 70 Z" fill="#fbc02d"/>
+  <path d="M60 100 L45 130 L60 135 Z" fill="#fdd835"/>
+  <path d="M140 100 L155 130 L140 135 Z" fill="#fdd835"/>
+  <circle cx="100" cy="100" r="4" fill="#795548"/>
+  <circle cx="100" cy="118" r="4" fill="#795548"/>
+  <text x="100" y="188" font-size="13" font-family="'Segoe UI', sans-serif" text-anchor="middle" fill="#37474f">Yellow Raincoat (demo)</text>
+</svg>
